@@ -1,4 +1,3 @@
-#include <Arduino.h>
 #define CLK 2
 #define DT 3
 #define SW 4
@@ -46,4 +45,3 @@ void loop() {
   if (enc1.isHolded()) Serial.println("Holded");       // если была удержана и энк не поворачивался
   //if (enc1.isHold()) Serial.println("Hold");         // возвращает состояние кнопки
 }
-
