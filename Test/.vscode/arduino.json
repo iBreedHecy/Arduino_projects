@@ -1,6 +1,6 @@
 {
-    "programmer": "AVR ISP",
+    "programmer": "AVRISP mkII",
     "board": "arduino:avr:nano",
     "configuration": "cpu=atmega168",
-    "port": "COM3"
+    "port": "COM7"
 }
