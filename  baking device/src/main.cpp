@@ -5,11 +5,11 @@
 
 #define DEBUG 1
 
-#define pinRELE 1
+#define pinRELE 8
 #define pinBtnStart 9
 #define pinBtnStop 2
-#define pinCurrent A7
-#define pinSensorCurrent 1
+#define pinSensorCurrent A7
+#define pinPosCurrent A1
 
 LiquidCrystal_I2C lcd(0x27,16,2); 
 
@@ -19,9 +19,10 @@ ACS712 sensor(ACS712_30A, A0);
 
 
 
-int varCurrent = 20;
+float varCurrent = 20.0f;
 int varExposition = 10;
-int _current,_exposition;
+int _exposition;
+float _current;
 unsigned long _exposition_last_time;
 volatile boolean work = false;
 byte pBar[8] = {
@@ -36,8 +37,11 @@ byte pBar[8] = {
 };
 
 void Stop_Becking(){
+  digitalWrite(pinRELE,false);
   work = false;
+  if(DEBUG){
   Serial.println("interrapt");
+  }
 }
 
 void disUpdate(){
@@ -45,8 +49,8 @@ void disUpdate(){
   lcd.setCursor(0,0);
   lcd.print("EXP:");
   lcd.print(varExposition);
-  lcd.print("sec "); 
-  lcd.setCursor(12, 0); 
+  lcd.print("s "); 
+  lcd.setCursor(10, 0); 
   lcd.print("A:");   
   lcd.print(varCurrent);
  // delay(500);
@@ -67,14 +71,16 @@ void startScreen(){
 void Beking() {
   if(DEBUG){
     Serial.println("Start becking..");
-    Serial.println("check A");
     Serial.println("rele ON");
   }
+
 work = true;
+digitalWrite(pinRELE,true);
 _exposition_last_time = millis();
 _exposition = varExposition;
 
 while(_exposition != 0 && work == true){
+  
   if((millis() - _exposition_last_time) >= 1000) {
     _current = sensor.getCurrentDC();
     _exposition--;
@@ -90,19 +96,28 @@ while(_exposition != 0 && work == true){
     }
     lcd.setCursor(4, 0);
     lcd.print(_exposition);
-    lcd.print("sec  "); 
-    lcd.setCursor(14, 0);
+    lcd.print("s"); 
+    lcd.setCursor(12, 0);
     lcd.print(_current);
+    if(varCurrent <= _current || varCurrent <= _current ){
+      digitalWrite(pinRELE,false);
+      work = false;
+      lcd.setCursor(0, 1);
+      lcd.print("Cut-off current ");
+      if(DEBUG){
+      Serial.print("Cut-off current:");
+      Serial.println(_current);
+      }
+      delay(500);
+      break;      
+    }
   }
-
-
-
 }
 if(DEBUG){
   Serial.println("becking DONE!");
   Serial.println("rele OFF");
 }
-
+digitalWrite(pinRELE,false);
 delay(1000);
 lcd.setCursor(0, 1);
 lcd.clear();
@@ -111,22 +126,30 @@ lcd.clear();
 void setup() {
   
   Serial.begin(9600);
-  int zero = sensor.calibrate();
-  Serial.println("Zero point for this sensor = " + zero);
   lcd.init();                     
   lcd.backlight();
   lcd.createChar(0, pBar);
-  pinMode(pinCurrent,INPUT);
+  pinMode(11,OUTPUT);
+  pinMode(12,OUTPUT);
+  digitalWrite(11,true);
+  digitalWrite(12,false);
+  pinMode(pinSensorCurrent,INPUT);
   pinMode(pinBtnStart,INPUT_PULLUP);
   pinMode(pinBtnStop,INPUT_PULLUP);
+  pinMode(pinPosCurrent,INPUT);
+  pinMode(pinRELE,OUTPUT);
+  digitalWrite(pinRELE,false);
   attachInterrupt(0,Stop_Becking,FALLING);
   startScreen();
   
 }
 
 void loop() {
-varExposition = map(analogRead(pinCurrent),0,1023,0,60);
+
+varExposition = map(analogRead(pinSensorCurrent),0,1023,0,60);
+varCurrent = map(analogRead(pinPosCurrent),0,1000,0,20);
 if(!digitalRead(pinBtnStart) && varExposition!=0)Beking();
+
 disUpdate();
 
 

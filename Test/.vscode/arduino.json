@@ -2,5 +2,5 @@
     "programmer": "AVRISP mkII",
     "board": "arduino:avr:nano",
     "configuration": "cpu=atmega168",
-    "port": "COM7"
+    "port": "COM8"
 }
