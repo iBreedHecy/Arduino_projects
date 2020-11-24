@@ -3,7 +3,7 @@
 #include <LiquidCrystal_I2C.h>  
 #include <ACS712.h>
 
-#define DEBUG 1
+#define DEBUG 0
 
 #define pinRELE 8
 #define pinBtnStart 9
@@ -99,7 +99,7 @@ while(_exposition != 0 && work == true){
     lcd.print("s"); 
     lcd.setCursor(12, 0);
     lcd.print(_current);
-    if(varCurrent <= _current || varCurrent <= _current ){
+    if(varCurrent <= _current){
       digitalWrite(pinRELE,false);
       work = false;
       lcd.setCursor(0, 1);
